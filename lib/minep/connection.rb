@@ -2,7 +2,7 @@ module MINEP
   class Connection < EM::Connection
     def initialize request
       super
-      @request = "Should be a valid request"
+      @request = "Should be a valid request\n"
     end
 
     def post_init

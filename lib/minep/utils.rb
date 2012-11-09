@@ -28,10 +28,24 @@ module MINEP
       true
     end
 
+    def self.calcLength request
+      rqst = request[:body].keys[0]
+      cL = rqst.size # rqst
+      cL += 3   # ={..}
+      request[:body][rqst].each do |key, value| # ..
+        cL += 6 + key.size + value.size # "key":"value",
+      end
+      cL -= 1   # the loop counts one inexistant ','
+    end
+
     def self.makeAuthenticate request, options
       request[:body] = {
-        :authenticate => options
+        :authenticate => {
+          :name => options[:name],
+          :pass => options[:pass]
+        }
       }
+      request[:header][:contentLength] = calcLength request
       true
     end
   end
