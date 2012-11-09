@@ -31,7 +31,6 @@ module MINEP
     end
 
     def unbind
-      puts "Unbind"
       EventMachine::stop_event_loop
     end
   end
