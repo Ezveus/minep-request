@@ -21,7 +21,7 @@ module MINEP
       request[:header] = {
         :head => "POST /mine/protocol/request HTTP/1.1",
         :host => "#{host}:#{port}",
-        :connection => "Close",
+        :connection => "Keep-Alive",
         :contentType => "application/x-www-form-urlencoded",
         :contentLength => 0
       }
