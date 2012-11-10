@@ -1,4 +1,27 @@
 module MINEP
+  RequestList = [
+                 :authenticate,
+                 :signup,
+                 :exec,
+                 :insert,
+                 :move,
+                 :backspace,
+                 :delete
+                ]
+
+  def self.requestList
+    RequestList
+  end
+
+  def RequestList.to_s
+    # res = ""
+    # RequestList.each do |rqst|
+    #   res += "\t-> #{rqst}\n"
+    # end
+    # res
+    "\t-> authenticate\n\t-> signup\n\t-> exec\n\t-> insert\n\t-> move\n\t-> backspace\n\t-> delete\n"
+  end
+  
   module Request
     def self.authenticate request, opts={}
       return false if opts.empty?

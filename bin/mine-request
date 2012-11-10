@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'rubygems'
+load 'lib/minep.dev.rb'
+
+request = nil
+options = {}
+
+optparse = OptionParser.new do |opts|
+  opts.banner = <<-eos
+Usage: mine-request -r REQUEST [OPTION]... REQUEST_ARGUMENTS
+Send a request to a MINE server
+
+Valid requests are :
+#{MINEP.requestList}
+eos
+
+  opts.on("-r", "--request REQUEST",
+          MINEP.requestList, "request to send") do |r|
+    request = r
+  end
+
+  opts.on "-h", "--host HOST", "server hostname" do |h|
+    options[:host] = h
+  end
+
+  opts.on "-p", "--port PORT", Integer, "server port" do |p|
+    options[:port] = p
+  end
+
+  opts.on "--help", "displays this screen" do |h|
+    puts opts
+    exit 1
+  end
+end
+
+begin
+  optparse.parse!
+  if request.nil?
+    puts "Missing option : request\n"
+    puts optparse
+    exit 1
+  end
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser::InvalidArgument
+  puts $!.to_s
+  puts optparse
+  exit 1
+end  
+
+ARGV.each do |arg|
+  args = arg.split '='
+  options[args[0].to_sym] = args[1]
+end
+puts options
+MINEP.send request, options
