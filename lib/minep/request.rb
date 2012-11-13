@@ -14,49 +14,45 @@ module MINEP
   end
 
   def RequestList.to_s
-    # res = ""
-    # RequestList.each do |rqst|
-    #   res += "\t-> #{rqst}\n"
-    # end
-    # res
     "\t-> authenticate\n\t-> signup\n\t-> exec\n\t-> insert\n\t-> move\n\t-> backspace\n\t-> delete\n"
   end
   
   module Request
     def self.authenticate request, opts={}
-      return false if opts.empty?
-      return false if opts[:name].nil? or opts[:pass].nil?
+      MINEP.notEnoughArgs "AUTHENTICATE" if opts.empty?
+      MINEP.missingArgs "AUTHENTICATE" if opts[:name].nil? or opts[:pass].nil?
       Utils.makeAuthenticate request, opts
     end
 
     def self.signup request, opts={}
-      return false if opts.empty?
-      return false if opts[:name].nil? or opts[:pass].nil? or opts[:email].nil?
+      MINEP.notEnoughArgs "SIGNUP" if opts.empty?
+      MINEP.missingArgs "SIGNUP" if opts[:name].nil? or opts[:pass].nil? or opts[:email].nil?
+      Utils.makeSignup request, opts
     end
 
     def self.exec request, opts={}
-      return false if opts.empty?
-      return false if opts[:buffer].nil? or opts[:command].nil? or opts[:args].nil?
+      MINEP.notEnoughArgs "EXEC" if opts.empty?
+      MINEP.missingArgs "SIGNUP" if opts[:buffer].nil? or opts[:command].nil? or opts[:args].nil?
     end
 
     def self.insert request, opts={}
-      return false if opts.empty?
-      return false if opts[:buffer].nil? or opts[:text].nil?
+      MINEP.notEnoughArgs "INSERT" if opts.empty?
+      MINEP.missingArgs "INSERT" if opts[:buffer].nil? or opts[:text].nil?
     end
 
     def self.move request, opts={}
-      return false if opts.empty?
-      return false if opts[:buffer].nil? or opts[:direction].nil? or opts[:number].nil?
+      MINEP.notEnoughArgs "MOVE" if opts.empty?
+      MINEP.missingArgs "MOVE" if opts[:buffer].nil? or opts[:direction].nil? or opts[:number].nil?
     end
 
     def self.backspace request, opts={}
-      return false if opts.empty?
-      return false if opts[:buffer].nil? or opts[:number].nil?
+      MINEP.notEnoughArgs "BACKSPACE" if opts.empty?
+      MINEP.missingArgs "BACKSPACE" if opts[:buffer].nil? or opts[:number].nil?
     end
 
     def self.delete request, opts={}
-      return false if opts.empty?
-      return false if opts[:buffer].nil? or opts[:number].nil?
+      MINEP.notEnoughArgs "DELETE" if opts.empty?
+      MINEP.missingArgs "DELETE" if opts[:buffer].nil? or opts[:number].nil?
     end
   end
 end

@@ -48,5 +48,18 @@ module MINEP
       request[:header][:contentLength] = calcLength request
       true
     end
+
+    def self.makeSignup request, options
+      request[:body] = {
+        :signup => {
+          :name => options[:name],
+          :pass => options[:pass],
+          :email => options[:email],
+          :website => options[:website].to_s
+        }
+      }
+      request[:header][:contentLength] = calcLength request
+      true
+    end
   end
 end
