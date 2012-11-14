@@ -3,7 +3,6 @@ require 'eventmachine'
 require 'json'
 
 # Requiring internal files
-require 'minep/minep'
-require 'minep/request'
-require 'minep/utils'
-require 'minep/connection'
+%w[minep request utils connection exceptions].each do |file|
+  require "minep/#{file}"
+end

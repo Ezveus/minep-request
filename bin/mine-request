@@ -2,7 +2,7 @@
 
 require 'optparse'
 require 'rubygems'
-load 'lib/minep.dev.rb'
+require 'minep'
 
 request = nil
 options = {}
