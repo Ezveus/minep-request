@@ -1,5 +1,6 @@
 module MINEP
   module Utils
+    # Make the request (header + body)
     def self.makeRequest request, type, opts
       Utils.getHeader request, opts[:host], opts[:port]
       case type
@@ -14,7 +15,8 @@ module MINEP
         false
       end
     end
-    
+
+    # Make the request header
     def self.getHeader request, host=nil, port=nil
       host = "localhost" if host.nil?
       port = 8080 if host.nil?
@@ -28,6 +30,7 @@ module MINEP
       true
     end
 
+    # Calculate the body length
     def self.calcLength request
       rqst = request[:body].keys[0]
       cL = rqst.size # rqst
@@ -38,6 +41,7 @@ module MINEP
       cL -= 1   # the loop counts one inexistant ','
     end
 
+    # Make the body for AUTHENTICATE request
     def self.makeAuthenticate request, options
       request[:body] = {
         :authenticate => {
@@ -49,6 +53,7 @@ module MINEP
       true
     end
 
+    # Make the body for SIGNUP request
     def self.makeSignup request, options
       request[:body] = {
         :signup => {

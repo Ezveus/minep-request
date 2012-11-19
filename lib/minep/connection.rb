@@ -1,5 +1,9 @@
 module MINEP
+  # This class extends EM::Connection (the connection class of EventMachine)
   class Connection < EM::Connection
+    # Initialize the object
+    #
+    # @param [Hash] request is the request, The text request is built from this
     def initialize request
       super
       @request = ["#{request[:header][:head]}\n"]
@@ -22,10 +26,12 @@ module MINEP
       @request = @request.join
     end
 
+    # Send the request after the connection initialization
     def post_init
       send_data @request
     end
 
+    # Receive the answer of the server and puts it on standard output
     def receive_data data
       puts data
     end
