@@ -52,6 +52,7 @@ ARGV.each do |arg|
   args = arg.split '='
   options[args[0].to_sym] = args[1]
 end
+options[:closeLoop] = true
 begin
   MINEP.send request, options
 rescue MINEP::ArgumentsError => e

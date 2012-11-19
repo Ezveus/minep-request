@@ -4,9 +4,10 @@ module MINEP
     # Initialize the object
     #
     # @param [Hash] request is the request, The text request is built from this
-    def initialize request
+    def initialize request, closeLoop=false
       super
       @request = ["#{request[:header][:head]}\n"]
+      @closeLoop = closeLoop
       request[:header].each do |key, value|
         if key == :head
           next
@@ -37,7 +38,7 @@ module MINEP
     end
 
     def unbind
-      EventMachine::stop_event_loop
+      EventMachine::stop_event_loop if @closeLoop
     end
   end
 end
