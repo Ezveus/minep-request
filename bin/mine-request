@@ -9,7 +9,7 @@ options = {}
 
 optparse = OptionParser.new do |opts|
   opts.banner = <<-eos
-Usage: mine-request -r REQUEST [OPTION]... REQUEST_ARGUMENTS
+Usage: mine-request -r REQUEST [OPTION]... KEY=VALUE [KEY=VALUE ...]
 Send a request to a MINE server
 
 Valid requests are :
