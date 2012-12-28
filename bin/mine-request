@@ -1,32 +1,147 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
-require 'rubygems'
-require 'minep'
+lib = "/home/matthieu/Documents/Proj/Ruby/WEBSocket/lib"
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-request = nil
-options = {}
+require 'optparse'
+require 'json'
+require 'celluloid/io'
+require 'uri'
+require 'websocket'
+require 'WEBSocket'
+
+$options = {
+  :host => "localhost",
+  :port => 8080,
+  :type => :tcp
+}
+$goon = true
+$commands = {
+  "authenticate" => Proc.new { |s| authenticate s},
+  "signup" => Proc.new { |s| signup s},
+  "exec" => Proc.new { |s| exec s},
+  "insert" => Proc.new { |s| insert s},
+  "move" => Proc.new { |s| move s},
+  "backspace" => Proc.new { |s| backspace s},
+  "delete" => Proc.new { |s| delete s},
+  "help" => Proc.new { |s| help s},
+  "exit" => Proc.new { |s| quit s},
+  "quit" => Proc.new { |s| quit s}
+}
+
+def read
+  input = $stdin.readline
+  input = input.strip
+end
+
+def makeMsg request, args
+  args.each_key do |k|
+    if k == :args
+      printf "#{k} as a space-separated list : "
+      input = read
+      args[k] = input.split
+    elsif k == :direction
+      printf "#{k} (up, right, down, left, origin, end) : "
+      args[k] = read
+    elsif k == :number
+      printf "#{k} : "
+      args[k] = read.to_i
+    else
+      printf "#{k} : "
+      args[k] = read
+    end
+  end
+  "#{request.upcase}=#{JSON.dump args}"
+end
+
+def authenticate socket
+  args = {
+    :name => "",
+    :pass => ""
+  }
+  socket.write makeMsg("AUTHENTICATE", args)
+end
+
+def signup socket
+  args = {
+    :name => "",
+    :pass => "",
+    :email => "",
+    :website => ""
+  }
+  socket.write makeMsg("SIGNUP", args)
+end
+
+def exec socket
+  args = {
+    :buffer => "",
+    :command => "",
+    :args => []
+  }
+  socket.write makeMsg("EXEC", args)
+end
+
+def insert socket
+  args = {
+    :buffer => "",
+    :text => ""
+  }
+  socket.write makeMsg("INSERT", args)
+end
+
+def move socket
+  args = {
+    :buffer => "",
+    :direction => "",
+    :number => 0
+  }
+  socket.write makeMsg("MOVE", args)
+end
+
+def backspace socket
+  args = {
+    :buffer => "",
+    :number => 0
+  }
+  socket.write makeMsg("BACKSPACE", args)
+end
+
+def delete socket
+  args = {
+    :buffer => "",
+    :number => 0
+  }
+  socket.write makeMsg("DELETE", args)
+end
+
+def quit socket = nil
+  $goon = false
+  puts "Exiting"
+end
+
+def help socket = nil
+  puts "Valid commands are :"
+  $commands.keys.sort.each do |c|
+    puts c
+  end
+end
 
 optparse = OptionParser.new do |opts|
   opts.banner = <<-eos
-Usage: mine-request -r REQUEST [OPTION]... KEY=VALUE [KEY=VALUE ...]
+Usage: mine-request [OPTIONS]
 Send a request to a MINE server
-
-Valid requests are :
-#{MINEP.requestList}
 eos
 
-  opts.on("-r", "--request REQUEST",
-          MINEP.requestList, "request to send") do |r|
-    request = r
-  end
-
   opts.on "-h", "--host HOST", "server hostname" do |h|
-    options[:host] = h
+    $options[:host] = h
   end
 
   opts.on "-p", "--port PORT", Integer, "server port" do |p|
-    options[:port] = p
+    $options[:port] = p
+  end
+
+  opts.on "-t", "--type TYPE", [:tcp, :websocket], "type of communication (tcp | websocket)" do |t|
+    $options[:type] = t
   end
 
   opts.on "--help", "displays this screen" do |h|
@@ -37,25 +152,30 @@ end
 
 begin
   optparse.parse!
-  if request.nil?
-    puts "Missing option : request\n"
-    puts optparse
-    exit 1
-  end
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser::InvalidArgument
   puts $!.to_s
   puts optparse
   exit 1
-end  
-
-ARGV.each do |arg|
-  args = arg.split '='
-  options[args[0].to_sym] = args[1]
 end
-options[:closeLoop] = true
-begin
-  MINEP.send request, options
-rescue MINEP::ArgumentsError => e
-  $stderr.puts "Error : #{e}"
-  exit 1
+
+puts "[Debug] Options : #{$options}"
+
+if $options[:type] == :tcp
+  socket = Celluloid::IO::TCPSocket.new $options[:host], $options[:port]
+elsif $options[:type] == :websocket
+  socket = WEBSocket::Socket.new $options[:host], $options[:port]
+end
+
+while $goon do
+  printf ">> "
+  begin
+    cmd = read
+    if $commands.key? cmd
+      $commands[cmd].call socket
+    else
+      $stderr.puts "Error : unknown command"
+    end
+  rescue EOFError
+    quit
+  end
 end
