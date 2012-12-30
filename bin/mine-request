@@ -127,6 +127,7 @@ def help socket = nil
 end
 
 optparse = OptionParser.new do |opts|
+  portSpecified = false
   opts.banner = <<-eos
 Usage: mine-request [OPTIONS]
 Send a request to a MINE server
@@ -138,10 +139,12 @@ eos
 
   opts.on "-p", "--port PORT", Integer, "server port" do |p|
     $options[:port] = p
+    portSpecified = true
   end
 
   opts.on "-t", "--type TYPE", [:tcp, :websocket], "type of communication (tcp | websocket)" do |t|
     $options[:type] = t
+    $options[:port] = 8081 unless portSpecified
   end
 
   opts.on "--help", "displays this screen" do |h|
