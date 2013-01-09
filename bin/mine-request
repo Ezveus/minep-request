@@ -54,6 +54,27 @@ def makeMsg request, args
   "#{request.upcase}=#{JSON.dump args}"
 end
 
+def file socket
+  args = {
+    :path => "",
+    :size => 0,
+    :line => 0,
+    :port => 0
+  }
+  printf "path : "
+  args[:path] = read
+  printf "line number : "
+  args[:line] = read.to_i
+  if File.exist? args[:path]
+    f = File.new args[:path]
+    args[:size] = f.size
+    args[:content] = f.read
+    socket.write "FILE=#{JSON.dump args}"
+  else
+    $stderr.puts "File #{args[:path]} doesn't exists"
+  end
+end
+
 def authenticate socket
   args = {
     :name => "",
