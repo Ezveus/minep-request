@@ -17,16 +17,26 @@ $options = {
 }
 $goon = true
 $commands = {
-  "authenticate" => Proc.new { |s| authenticate s},
-  "signup" => Proc.new { |s| signup s},
-  "exec" => Proc.new { |s| exec s},
-  "insert" => Proc.new { |s| insert s},
-  "move" => Proc.new { |s| move s},
-  "backspace" => Proc.new { |s| backspace s},
-  "delete" => Proc.new { |s| delete s},
-  "help" => Proc.new { |s| help s},
-  "exit" => Proc.new { |s| quit s},
-  "quit" => Proc.new { |s| quit s}
+  "authenticate" => [ Proc.new { |s| authenticate s},
+                      "Send an AUTHENTICATE request" ],
+  "signup" => [ Proc.new { |s| signup s},
+                "Send a SIGNUP request" ],
+  "exec" => [ Proc.new { |s| exec s},
+              "Send an EXEC request" ],
+  "insert" => [ Proc.new { |s| insert s},
+                "Send an INSERT request" ],
+  "move" => [ Proc.new { |s| move s},
+              "Send a MOVE request" ],
+  "backspace" => [ Proc.new { |s| backspace s},
+                   "Send a BACKSPACE request" ],
+  "delete" => [ Proc.new { |s| delete s},
+                "Send a DELETE request" ],
+  "help" => [ Proc.new { |s| help s},
+              "Show the list of the commands" ],
+  "exit" => [ Proc.new { |s| quit s},
+              "Disconnect and quit the program" ],
+  "quit" => [ Proc.new { |s| quit s},
+              "Disconnect and quit the program" ]
 }
 
 def read
@@ -143,7 +153,7 @@ end
 def help socket = nil
   puts "Valid commands are :"
   $commands.keys.sort.each do |c|
-    puts c
+    puts "#{c} : #{$commands[c][1]}"
   end
 end
 
@@ -195,7 +205,7 @@ while $goon do
   begin
     cmd = read
     if $commands.key? cmd
-      $commands[cmd].call socket
+      $commands[cmd][0].call socket
     else
       $stderr.puts "Error : unknown command"
     end
