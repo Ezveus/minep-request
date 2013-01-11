@@ -1,14 +1,12 @@
 #!/usr/bin/env ruby
 
-lib = "/home/matthieu/Documents/Proj/Ruby/WEBSocket/lib"
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+# lib = "lib"
+# $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'optparse'
-require 'json'
-require 'celluloid/io'
-require 'uri'
-require 'websocket'
+require 'socket'
 require 'WEBSocket'
+require 'minep-request'
 
 $options = {
   :host => "localhost",
@@ -16,134 +14,20 @@ $options = {
   :type => :tcp
 }
 $goon = true
+
 $commands = {
-  "authenticate" => [ Proc.new { |s| authenticate s},
-                      "Send an AUTHENTICATE request" ],
-  "signup" => [ Proc.new { |s| signup s},
-                "Send a SIGNUP request" ],
-  "exec" => [ Proc.new { |s| exec s},
-              "Send an EXEC request" ],
-  "insert" => [ Proc.new { |s| insert s},
-                "Send an INSERT request" ],
-  "move" => [ Proc.new { |s| move s},
-              "Send a MOVE request" ],
-  "backspace" => [ Proc.new { |s| backspace s},
-                   "Send a BACKSPACE request" ],
-  "delete" => [ Proc.new { |s| delete s},
-                "Send a DELETE request" ],
-  "help" => [ Proc.new { |s| help s},
-              "Show the list of the commands" ],
-  "exit" => [ Proc.new { |s| quit s},
-              "Disconnect and quit the program" ],
-  "quit" => [ Proc.new { |s| quit s},
-              "Disconnect and quit the program" ]
+  "authenticate" => Proc.new { |s| Minep::Request.authenticate s},
+  "signup" => Proc.new { |s| Minep::Request.signup s},
+  "exec" => Proc.new { |s| Minep::Request.exec s},
+  "insert" => Proc.new { |s| Minep::Request.insert s},
+  "move" => Proc.new { |s| Minep::Request.move s},
+  "backspace" => Proc.new { |s| Minep::Request.backspace s},
+  "delete" => Proc.new { |s| Minep::Request.delete s},
+  "file" => Proc.new { |s| Minep::Request.file s},
+  "help" => Proc.new { |s| help s},
+  "exit" => Proc.new { |s| quit s},
+  "quit" => Proc.new { |s| quit s}
 }
-
-def read
-  input = $stdin.readline
-  input = input.strip
-end
-
-def makeMsg request, args
-  args.each_key do |k|
-    if k == :args
-      printf "#{k} as a space-separated list : "
-      input = read
-      args[k] = input.split
-    elsif k == :direction
-      printf "#{k} (up, right, down, left, origin, end) : "
-      args[k] = read
-    elsif k == :number
-      printf "#{k} : "
-      args[k] = read.to_i
-    else
-      printf "#{k} : "
-      args[k] = read
-    end
-  end
-  "#{request.upcase}=#{JSON.dump args}"
-end
-
-def file socket
-  args = {
-    :path => "",
-    :size => 0,
-    :line => 0,
-    :port => 0
-  }
-  printf "path : "
-  args[:path] = read
-  printf "line number : "
-  args[:line] = read.to_i
-  if File.exist? args[:path]
-    f = File.new args[:path]
-    args[:size] = f.size
-    args[:content] = f.read
-    socket.write "FILE=#{JSON.dump args}"
-  else
-    $stderr.puts "File #{args[:path]} doesn't exists"
-  end
-end
-
-def authenticate socket
-  args = {
-    :name => "",
-    :pass => ""
-  }
-  socket.write makeMsg("AUTHENTICATE", args)
-end
-
-def signup socket
-  args = {
-    :name => "",
-    :pass => "",
-    :email => "",
-    :website => ""
-  }
-  socket.write makeMsg("SIGNUP", args)
-end
-
-def exec socket
-  args = {
-    :buffer => "",
-    :command => "",
-    :args => []
-  }
-  socket.write makeMsg("EXEC", args)
-end
-
-def insert socket
-  args = {
-    :buffer => "",
-    :text => ""
-  }
-  socket.write makeMsg("INSERT", args)
-end
-
-def move socket
-  args = {
-    :buffer => "",
-    :direction => "",
-    :number => 0
-  }
-  socket.write makeMsg("MOVE", args)
-end
-
-def backspace socket
-  args = {
-    :buffer => "",
-    :number => 0
-  }
-  socket.write makeMsg("BACKSPACE", args)
-end
-
-def delete socket
-  args = {
-    :buffer => "",
-    :number => 0
-  }
-  socket.write makeMsg("DELETE", args)
-end
 
 def quit socket = nil
   $goon = false
@@ -153,7 +37,7 @@ end
 def help socket = nil
   puts "Valid commands are :"
   $commands.keys.sort.each do |c|
-    puts "#{c} : #{$commands[c][1]}"
+    puts "#{c} : #{Minep::Request::CommandsInfo[c]}"
   end
 end
 
@@ -192,20 +76,23 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser:
   exit 1
 end
 
-puts "[Debug] Options : #{$options}"
-
-if $options[:type] == :tcp
-  socket = Celluloid::IO::TCPSocket.new $options[:host], $options[:port]
-elsif $options[:type] == :websocket
-  socket = WEBSocket::Socket.new $options[:host], $options[:port]
+begin
+  if $options[:type] == :tcp
+    socket = TCPSocket.new $options[:host], $options[:port]
+  elsif $options[:type] == :websocket
+    socket = WEBSocket::Socket.new $options[:host], $options[:port]
+  end
+rescue => e
+  $stderr.puts "Error : #{e} <#{$options[:host]} - #{$options[:port]}>"
+  exit 1
 end
 
 while $goon do
   printf ">> "
   begin
-    cmd = read
+    cmd = Minep.read
     if $commands.key? cmd
-      $commands[cmd][0].call socket
+      $commands[cmd].call socket
     else
       $stderr.puts "Error : unknown command"
     end

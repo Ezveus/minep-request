@@ -1,7 +1,5 @@
-require "minep-request/version"
+require 'json'
 
-module Minep
-  module Request
-    # Your code goes here...
-  end
-end
+require "minep-request/version"
+require "minep-request/minep"
+require "minep-request/requests"
