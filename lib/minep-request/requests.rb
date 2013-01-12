@@ -1,3 +1,5 @@
+require 'minep-request/minep'
+
 module Minep
   module Request
     CommandsInfo ||= {
@@ -8,7 +10,7 @@ module Minep
       "move" => "Send a MOVE request",
       "backspace" => "Send a BACKSPACE request",
       "delete" => "Send a DELETE request",
-      "file" => "Send a FILE request",
+      "load" => "Send a LOAD request",
       "help" => "Show the list of the commands",
       "exit" => "Disconnect and quit the program",
       "quit" => "Disconnect and quit the program"
@@ -18,7 +20,7 @@ module Minep
       CommandsInfo
     end
 
-    def self.file socket
+    def self.load socket, type
       args = {
         :path => "",
         :size => 0,
@@ -26,14 +28,34 @@ module Minep
         :port => 0
       }
       printf "path : "
-      args[:path] = read
+      args[:path] = Minep.read
       printf "line number : "
-      args[:line] = read.to_i
+      args[:line] = Minep.read.to_i
+      printf "port : "
+      args[:port] = Minep.read.to_i
       if File.exist? args[:path]
         f = File.new args[:path]
         args[:size] = f.size
-        args[:content] = f.read
-        socket.write "FILE=#{JSON.dump args}"
+        f.close
+        Thread.start args[:port], args[:path] do |port, path|
+          file = File.new args[:path]
+          content = file.read
+          file.close
+          server = nil
+          if type == :tcp
+            server = TCPServer.new "0.0.0.0", port
+          elsif type == :websocket
+            server = WEBSocket::Server.new "0.0.0.0", port
+          end
+          socket = server.accept
+          socket.write content
+          socket.shutdown :RDWR
+          socket.close
+          server.close
+          Thread.stop
+        end
+        sleep 2
+        socket.write "LOAD=#{JSON.dump args}"
       else
         $stderr.puts "File #{args[:path]} doesn't exists"
       end

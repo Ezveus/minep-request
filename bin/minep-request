@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-# lib = "lib"
-# $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-
 require 'optparse'
 require 'socket'
 require 'WEBSocket'
@@ -23,7 +20,7 @@ $commands = {
   "move" => Proc.new { |s| Minep::Request.move s},
   "backspace" => Proc.new { |s| Minep::Request.backspace s},
   "delete" => Proc.new { |s| Minep::Request.delete s},
-  "file" => Proc.new { |s| Minep::Request.file s},
+  "load" => Proc.new { |s| Minep::Request.load s, $options[:type]},
   "help" => Proc.new { |s| help s},
   "exit" => Proc.new { |s| quit s},
   "quit" => Proc.new { |s| quit s}

@@ -19,6 +19,7 @@ The known commands are :
 - exit : Disconnect and quit the program
 - help : Show the list of the commands
 - insert : Send an INSERT request
+- load : Send a LOAD request
 - move : Send a MOVE request
 - quit : Disconnect and quit the program
 - signup : Send a SIGNUP request
