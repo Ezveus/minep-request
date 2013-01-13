@@ -21,6 +21,7 @@ module Minep
         args[k] = read
       end
     end
+    args["id"] = SecureRandom.uuid
     "#{request.upcase}=#{JSON.dump args}"
   end
 end
