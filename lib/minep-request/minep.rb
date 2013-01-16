@@ -4,7 +4,7 @@ module Minep
     input = input.strip
   end
 
-  def self.makeMsg request, args
+  def self.makeMsg request, args, buflist = nil
     args.each_key do |k|
       if k == :args
         printf "#{k} as a space-separated list : "
@@ -20,6 +20,11 @@ module Minep
         printf "#{k} : "
         args[k] = read
       end
+    end
+    if buflist and args[:buffer]
+      bufferName = args[:buffer]
+      args[:buffer] = buflist[bufferName]
+      return $stderr.puts "Error : This buffer doesn't exists" if args[:buffer].nil?
     end
     args["id"] = SecureRandom.uuid
     "#{request.upcase}=#{JSON.dump args}"

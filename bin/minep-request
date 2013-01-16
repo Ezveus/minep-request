@@ -5,6 +5,8 @@ require 'socket'
 require 'WEBSocket'
 require 'minep-request'
 
+$buflist = {}
+
 $options = {
   :host => "localhost",
   :port => 8080,
@@ -15,16 +17,24 @@ $goon = true
 $commands = {
   "authenticate" => Proc.new { |s| Minep::Request.authenticate s},
   "signup" => Proc.new { |s| Minep::Request.signup s},
-  "exec" => Proc.new { |s| Minep::Request.exec s},
-  "insert" => Proc.new { |s| Minep::Request.insert s},
-  "move" => Proc.new { |s| Minep::Request.move s},
-  "backspace" => Proc.new { |s| Minep::Request.backspace s},
-  "delete" => Proc.new { |s| Minep::Request.delete s},
-  "load" => Proc.new { |s| Minep::Request.load s, $options[:type]},
+  "exec" => Proc.new { |s| Minep::Request.exec s, $buflist},
+  "insert" => Proc.new { |s| Minep::Request.insert s, $buflist},
+  "move" => Proc.new { |s| Minep::Request.move s, $buflist},
+  "backspace" => Proc.new { |s| Minep::Request.backspace s, $buflist},
+  "delete" => Proc.new { |s| Minep::Request.delete s, $buflist},
+  "load" => Proc.new { |s| Minep::Request.load s, $options[:type], $buflist},
+  "list" => Proc.new { |s| list s},
   "help" => Proc.new { |s| help s},
   "exit" => Proc.new { |s| quit s},
   "quit" => Proc.new { |s| quit s}
 }
+
+def list socket = nil
+  puts "Buffers are :"
+  $buflist.each_key do |buf|
+    puts buf
+  end
+end
 
 def quit socket = nil
   $goon = false

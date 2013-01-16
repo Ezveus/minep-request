@@ -67,7 +67,7 @@ module Minep
       response
     end
 
-    def self.load socket, type
+    def self.load socket, type, buflist
       args = {
         :path => "",
         :size => 0,
@@ -99,6 +99,8 @@ module Minep
         return $stderr.puts "Error while parsing response"
       end
       puts "Buffer id : #{response["info"]["uuid"]}"
+      buflist[response["info"]["uuid"]] = response["info"]["uuid"]
+      buflist[args[:path]] = response["info"]["uuid"]
       response["status"]
     end
 
@@ -107,7 +109,9 @@ module Minep
         :name => "",
         :pass => ""
       }
-      socket.write Minep.makeMsg("AUTHENTICATE", args)
+      ret = Minep.makeMsg("AUTHENTICATE", args)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "AUTHENTICATE", socket
       return if response.nil?
       response["status"]
@@ -120,64 +124,76 @@ module Minep
         :email => "",
         :website => ""
       }
-      socket.write Minep.makeMsg("SIGNUP", args)
+      ret = Minep.makeMsg("SIGNUP", args)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "SIGNUP", socket
       return if response.nil?
       response["status"]
     end
 
-    def self.exec socket
+    def self.exec socket, buflist
       args = {
         :buffer => "",
         :command => "",
         :args => []
       }
-      socket.write Minep.makeMsg("EXEC", args)
+      ret = Minep.makeMsg("EXEC", args, buflist)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "EXEC", socket
       return if response.nil?
       response["status"]
     end
 
-    def self.insert socket
+    def self.insert socket, buflist
       args = {
         :buffer => "",
         :text => ""
       }
-      socket.write Minep.makeMsg("INSERT", args)
+      ret = Minep.makeMsg("INSERT", args, buflist)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "INSERT", socket
       return if response.nil?
       response["status"]
     end
 
-    def self.move socket
+    def self.move socket, buflist
       args = {
         :buffer => "",
         :direction => "",
         :number => 0
       }
-      socket.write Minep.makeMsg("MOVE", args)
+      ret = Minep.makeMsg("MOVE", args, buflist)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "MOVE", socket
       return if response.nil?
       response["status"]
     end
 
-    def self.backspace socket
+    def self.backspace socket, buflist
       args = {
         :buffer => "",
         :number => 0
       }
-      socket.write Minep.makeMsg("BACKSPACE", args)
+      ret = Minep.makeMsg("BACKSPACE", args, buflist)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "BACKSPACE", socket
       return if response.nil?
       response["status"]
     end
 
-    def self.delete socket
+    def self.delete socket, buflist
       args = {
         :buffer => "",
         :number => 0
       }
-      socket.write Minep.makeMsg("DELETE", args)
+      ret = Minep.makeMsg("DELETE", args, buflist)
+      return if ret.nil?
+      socket.write ret
       response = readAndParseResponse "DELETE", socket
       return if response.nil?
       response["status"]
