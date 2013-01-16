@@ -21,6 +21,9 @@ module Minep
         args[k] = read
       end
     end
+    if request == "INSERT"
+      args[:text] = Base64.encode64 args[:text]
+    end
     if buflist and args[:buffer]
       bufferName = args[:buffer]
       args[:buffer] = buflist[bufferName]

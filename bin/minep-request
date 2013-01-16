@@ -117,7 +117,7 @@ while $goon do
         quit
       end
       if str.nil?
-        quit
+        $goon = false
       else
         tab = str.strip.split
         puts "/!\\ Received a message from server :\n\t#{str.strip}"
