@@ -31,6 +31,23 @@ module Minep
       CommandsInfo
     end
 
+    def self.sendFile port, path, type
+      file = File.new path
+      content = file.read
+      file.close
+      server = nil
+      if type == :tcp
+        server = TCPServer.new "0.0.0.0", port
+      elsif type == :websocket
+        server = WEBSocket::Server.new "0.0.0.0", port
+      end
+      socket = server.accept
+      socket.write content
+      socket.shutdown :RDWR
+      socket.close
+      server.close
+    end
+
     def self.readAndParseResponse request, socket
       responsetab = socket.readpartial(4096).split '='
       return $stderr.puts "Error while parsing response"if responsetab[0] != "RESPONSE"
@@ -64,40 +81,25 @@ module Minep
       printf "port : "
       args[:port] = Minep.read.to_i
       args[:id] = SecureRandom.uuid
-      if File.exist? args[:path]
-        f = File.new args[:path]
-        args[:size] = f.size
-        f.close
-        Thread.start args[:port], args[:path] do |port, path|
-          file = File.new args[:path]
-          content = file.read
-          file.close
-          server = nil
-          if type == :tcp
-            server = TCPServer.new "0.0.0.0", port
-          elsif type == :websocket
-            server = WEBSocket::Server.new "0.0.0.0", port
-          end
-          socket = server.accept
-          socket.write content
-          socket.shutdown :RDWR
-          socket.close
-          server.close
-          Thread.stop
-        end
-        sleep 2
-        socket.write "LOAD=#{JSON.dump args}"
-        response = readAndParseResponse "LOAD", socket
-        return if response.nil?
-        if response["info"]["uuid"]
-          puts "Buffer id : #{response["info"]["uuid"]}"
-          return response["status"]
-        else
-          return $stderr.puts "Error while parsing response"
-        end
-      else
-        $stderr.puts "File #{args[:path]} doesn't exists"
+      unless File.exist? args[:path]
+        return $stderr.puts "File #{args[:path]} doesn't exists"
       end
+      f = File.new args[:path]
+      args[:size] = f.size
+      f.close
+      Thread.start args[:port], args[:path], type do |port, path, type|
+        sendFile port, path, type
+        Thread.stop
+      end
+      sleep 2
+      socket.write "LOAD=#{JSON.dump args}"
+      response = readAndParseResponse "LOAD", socket
+      return if response.nil?
+      unless response["info"]["uuid"]
+        return $stderr.puts "Error while parsing response"
+      end
+      puts "Buffer id : #{response["info"]["uuid"]}"
+      response["status"]
     end
 
     def self.authenticate socket
