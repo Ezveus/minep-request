@@ -86,14 +86,32 @@ end
 
 while $goon do
   printf ">> "
-  begin
-    cmd = Minep.read
-    if $commands.key? cmd
-      $commands[cmd].call socket
-    else
-      $stderr.puts "Error : unknown command"
+  rs = select [$stdin, socket]
+  rs.each do |r, w, e|
+    if r == $stdin
+      begin
+        cmd = Minep.read
+        if $commands.key? cmd
+          $commands[cmd].call socket
+        else
+          $stderr.puts "Error : unknown command"
+        end
+      rescue EOFError
+        quit
+      end
+    elsif r == socket
+      begin
+        str = socket.readpartial 4096
+      rescue EOFError
+        puts ""
+        quit
+      end
+      if str.nil?
+        quit
+      else
+        tab = str.strip.split
+        puts "/!\\ Received a message from server :\n\t#{str.strip}"
+      end
     end
-  rescue EOFError
-    quit
   end
 end
