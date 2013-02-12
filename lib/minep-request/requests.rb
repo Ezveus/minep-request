@@ -16,6 +16,7 @@ module Minep
 
     Status ||= [
                 "Ok",
+                "Request ID is missing",
                 "Request is unvalid",
                 "Request is unknown",
                 "Request argument is unvalid",
@@ -24,7 +25,8 @@ module Minep
                 "Action is forbidden",
                 "Buffer is unknown",
                 "Someone is already logged",
-                "Request ID is missing"
+                "Command is unknown",
+                "File doesn't exists"
                ]
 
     def self.CommandsInfo
@@ -49,7 +51,8 @@ module Minep
     end
 
     def self.readAndParseResponse request, socket
-      responsetab = socket.readpartial(4096).split '='
+      responsestr = socket.readpartial 4096
+      responsetab = responsestr.split '=', 2
       return $stderr.puts "Error while parsing response"if responsetab[0] != "RESPONSE"
       response = {}
       begin
