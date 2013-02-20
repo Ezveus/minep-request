@@ -205,12 +205,12 @@ module Minep
       response["status"]
     end
 
-    def self.shell socket, buflist
+    def self.shell socket
       args = {
         :command => "",
         :args => []
       }
-      ret = Minep.makeMsg("SHELL", args, buflist)
+      ret = Minep.makeMsg("SHELL", args)
       return if ret.nil?
       socket.write ret
       response = readAndParseResponse "SHELL", socket
