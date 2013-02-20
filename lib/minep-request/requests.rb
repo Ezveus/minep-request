@@ -9,6 +9,7 @@ module Minep
       "backspace" => "Send a BACKSPACE request",
       "delete" => "Send a DELETE request",
       "load" => "Send a LOAD request",
+      "shell" => "Send a SHELL request",
       "help" => "Show the list of the commands",
       "exit" => "Disconnect and quit the program",
       "quit" => "Disconnect and quit the program"
@@ -75,6 +76,7 @@ module Minep
         :path => "",
         :size => 0,
         :line => 0,
+        :type => "up",
         :port => 0
       }
       printf "path : "
@@ -95,6 +97,7 @@ module Minep
         Thread.stop
       end
       sleep 2
+      puts "LOAD=#{JSON.dump args}"
       socket.write "LOAD=#{JSON.dump args}"
       response = readAndParseResponse "LOAD", socket
       return if response.nil?
@@ -198,6 +201,19 @@ module Minep
       return if ret.nil?
       socket.write ret
       response = readAndParseResponse "DELETE", socket
+      return if response.nil?
+      response["status"]
+    end
+
+    def self.shell socket, buflist
+      args = {
+        :command => "",
+        :args => []
+      }
+      ret = Minep.makeMsg("SHELL", args, buflist)
+      return if ret.nil?
+      socket.write ret
+      response = readAndParseResponse "SHELL", socket
       return if response.nil?
       response["status"]
     end
