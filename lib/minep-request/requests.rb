@@ -215,7 +215,10 @@ module Minep
       socket.write ret
       response = readAndParseResponse "SHELL", socket
       return if response.nil?
-      response["status"]
+      if response["info"]["ls"]
+        puts "ls : #{response["info"]["ls"]}"
+        response["status"]
+      end
     end
   end
 end
