@@ -217,7 +217,8 @@ module Minep
       return if response.nil?
       if response["info"]["ls"]
         puts "ls : #{response["info"]["ls"]}"
-      response["status"]
+        response["status"]
+      end
     end
   end
 end
